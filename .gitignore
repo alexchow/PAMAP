@@ -1,0 +1,4 @@
+*.pyc
+.idea/
+*.db
+PAMAP2_DATASET/
