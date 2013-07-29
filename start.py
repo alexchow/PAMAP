@@ -3,7 +3,7 @@ import sqlite3
 
 import sys
 
-from flask import Flask, send_from_directory, request, g
+from flask import Flask, send_from_directory, request, g, _app_ctx_stack
 from datapopulator import DataPopulator
 from dbmigrator import DbMigrator
 from responseBuilder import ResponseBuilder
@@ -18,8 +18,17 @@ harApp = Flask(__name__, static_folder="static")
 # Set configuration to grab the ALL CAPS variables from this file
 harApp.config.from_object(__name__)
 
-def connect_db():
-    return sqlite3.connect(harApp.config['DATABASE'])
+def get_db():
+    """Opens a new database connection if there is none yet for the
+    current application context.
+    """
+    top = _app_ctx_stack.top
+    if not hasattr(top, 'sqlite_db'):
+        sqlite_db = sqlite3.connect(harApp.config['DATABASE'])
+        sqlite_db.row_factory = sqlite3.Row
+        top.sqlite_db = sqlite_db
+
+    return top.sqlite_db
 
 starting_migrations = [
     """
@@ -77,11 +86,11 @@ def getData():
     return ""
 
 @harApp.before_request
-def before_request():
-    g.db = connect_db()
+def set_app_db():
+    g.db = get_db()
 
 @harApp.teardown_request
-def teardown_request(exception):
+def close_app_db(exception):
     db = getattr(g, 'db', None)
     if db is not None:
         db.close()
