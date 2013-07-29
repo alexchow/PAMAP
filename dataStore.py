@@ -1,7 +1,6 @@
 import random
 from flask import g
 from singleton import Singleton
-from start import harApp
 
 __author__ = 'alexander'
 
@@ -19,18 +18,26 @@ class DataStore(Singleton):
                    for idx, value in enumerate(row)) for row in cur.fetchall()]
         return (rv[0] if rv else None) if one else rv
 
+    def __listOfDictToDictOfList(self, listOfDict):
+        """
+        :type listOfDict : list of dict
+        :rtype: dict of list
+        """
+        first_row = listOfDict[0]
+        return {col_name : [cur_row[col_name] for cur_row in listOfDict] for col_name in first_row.keys() }
+
     def randomRawSamples(self, activity_id, samples_per_set, num_sets=1):
         """
         :type activity_id : int
         :type samples_per_set : int
         :type num_sets : int
 
-        :rtype: [ (int, [ ] ) ]
-        :return: List of tuples of session id and samples. The samples are a randomly chosen contiguous set of samples
+        :rtype : dict of (int, [ ])
+        :return: dict of session id to samples. The samples are a randomly chosen contiguous set of samples
                  corresponding to the specified activity id and has num_samples number of elements
         """
 
-        result = []
+        result = {}
 
         while len(result) < num_sets:
             sessions = self.__query_db("SELECT id, user from SESSIONS where activity = ?", (activity_id,))
@@ -53,7 +60,7 @@ class DataStore(Singleton):
             starting_point = random.randint(0, len(samples) - samples_per_set)
             """ :type : int"""
 
-            result.append((session_id, samples[starting_point:starting_point + samples_per_set]))
+            result[session_id] = self.__listOfDictToDictOfList(samples[starting_point:starting_point + samples_per_set])
 
         return result
 

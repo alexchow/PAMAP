@@ -18,5 +18,13 @@ class DataStoreTest(unittest.TestCase):
             sample_sets = dataStore.randomRawSamples(5, 500, 2)
 
             self.assertEqual(len(sample_sets), 2, "Number of sets retrieved was not as expected")
-            for session_id, sample_set in sample_sets:
+            for session_id, sample_set in sample_sets.iteritems():
                 self.assertEqual(len(sample_set), 500, "Sample set size was not as expected")
+
+    def testListOfDictInversion(self):
+        data = [ {'id': 1, 'name' : 'alice'}, {'id': 2, 'name': 'bob'}, {'id': 4, 'name': 'charlie'}]
+        store = DataStore()
+        result = store._DataStore__listOfDictToDictOfList(data)
+        self.assertEqual(len(result['id']), 3, "Incorrect number of elements in column")
+        
+

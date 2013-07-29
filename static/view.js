@@ -6,7 +6,7 @@
             var url = window.location.pathname;
             url = url.replace("view", "data");
             console.log("Getting data from: " + url);
-            $.get(url, function(data) {
+            $.getJSON(url, function(data) {
                 console.log(data);
                 r.renderResult(data);
             });

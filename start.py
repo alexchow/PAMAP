@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+import json
 import sqlite3
 
 import sys
 
 from flask import Flask, send_from_directory, request, g, _app_ctx_stack
+import flask
 from datapopulator import DataPopulator
 from dbmigrator import DbMigrator
 from responseBuilder import ResponseBuilder
@@ -78,12 +80,23 @@ def hello():
 
 @harApp.route("/view")
 def starterView():
-    return harApp.send_from_directory('static/', "view.html")
+    return send_from_directory('static/', "view.html")
+
+@harApp.route("/test/view")
+def testView():
+    return send_from_directory('static/', "view.html")
 
 @harApp.route("/data")
 def getData():
     responseBuilder = ResponseBuilder(request.args)
-    return ""
+    response = responseBuilder.build()
+    return json.dumps(response)
+
+@harApp.route("/test/data")
+def getTestData():
+    with open('static/testresponse.js') as file:
+        return json.dumps(json.load(file))
+
 
 @harApp.before_request
 def set_app_db():
