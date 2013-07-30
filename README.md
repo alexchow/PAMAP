@@ -39,9 +39,10 @@ In the source code, you can see that it uses the URL for deciding the page view.
 | Query         | Value         | 
 | ------------- |:-------------:| 
 | windowInterval| The number of samples in each time window. Default = 200               | 
-| activities    | Comma separated list of activity IDs to use. Default = all               | 
+| activities    | Comma separated list of activity IDs to use. Default = 'handAccX', handAccY,chestAccX,chestAccY,ankleGyrX,heartrate               | 
 | data\_keys              | Comma-separated list of raw data columns to use. Example: handAccX,chestGyrY,heartrate. Default uses all sensor data               | 
 | numWindows | The number of time windows to use. Default = 3| 
 
 An example query is:
+
     http://localhost:5000/view?windowInterval=250&numWindows=4&data_keys=handAccX,chestAccX,ankleGyrX
