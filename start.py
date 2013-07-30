@@ -1,12 +1,36 @@
 #!/usr/bin/env python
+import json
+import sqlite3
 
 import sys
 
-from flask import Flask
+from flask import Flask, send_from_directory, request, g, _app_ctx_stack
+import flask
 from datapopulator import DataPopulator
 from dbmigrator import DbMigrator
+from responseBuilder import ResponseBuilder
 
-app = Flask(__name__)
+# configuration
+DATABASE = 'test.db'  # default database file
+
+# harApp: Human Activity Recognition Flask Application
+harApp = Flask(__name__, static_folder="static")
+""":type : Flask"""
+
+# Set configuration to grab the ALL CAPS variables from this file
+harApp.config.from_object(__name__)
+
+def get_db():
+    """Opens a new database connection if there is none yet for the
+    current application context.
+    """
+    top = _app_ctx_stack.top
+    if not hasattr(top, 'sqlite_db'):
+        sqlite_db = sqlite3.connect(harApp.config['DATABASE'])
+        sqlite_db.row_factory = sqlite3.Row
+        top.sqlite_db = sqlite_db
+
+    return top.sqlite_db
 
 starting_migrations = [
     """
@@ -50,14 +74,45 @@ starting_migrations = [
     """
 ]
 
-@app.route("/")
+@harApp.route("/")
 def hello():
     return "Hello World!"
+
+@harApp.route("/view")
+def starterView():
+    return send_from_directory('static/', "view.html")
+
+@harApp.route("/test/view")
+def testView():
+    return send_from_directory('static/', "view.html")
+
+@harApp.route("/data")
+def getData():
+    responseBuilder = ResponseBuilder(request.args)
+    response = responseBuilder.build()
+    return json.dumps(response)
+
+@harApp.route("/test/data")
+def getTestData():
+    with open('static/testresponse.js') as file:
+        return json.dumps(json.load(file))
+
+
+@harApp.before_request
+def set_app_db():
+    g.db = get_db()
+
+@harApp.teardown_request
+def close_app_db(exception):
+    db = getattr(g, 'db', None)
+    if db is not None:
+        db.close()
 
 def usage():
     print "Usage: "
     print "start.py [populatedb] [<db filename>]"
-    print "where the <db filename> is the name of the db to use to either run the server or populate the data into"
+    print "where the <db filename> is the name of the database to use. The populatedb argument populates the database" \
+          "with with the PAMAP dataset. Omit it to simply run the Flask web server."
 
 # To populate the DB: python start.py populatedb
 if __name__ == "__main__":
@@ -66,7 +121,7 @@ if __name__ == "__main__":
         usage()
         exit()
     if (len(sys.argv) < 2):
-        app.run()
+        harApp.run()
     elif (sys.argv[1] == "populatedb"):
         if len(sys.argv) == 3:
             dbFilename = sys.argv[2]
@@ -77,4 +132,5 @@ if __name__ == "__main__":
         dataPopulator = DataPopulator()
         dataPopulator.parseDataAndPersistIntoDb(dbFilename)
     else:
-        dbFilename = sys.argv[1]
+        usage()
+        exit()
