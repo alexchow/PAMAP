@@ -1,7 +1,7 @@
 import unittest
 from dataStore import DataStore
-from featureBuilder import RAW_FEATURES, FeatureBuilder
-from responseBuilder import PROTOCOL_ACTIVITIES
+import featureBuilder
+import responseBuilder
 import start
 
 __author__ = 'alexander'
@@ -16,13 +16,20 @@ class FeatureBuilderTest(unittest.TestCase):
         with start.harApp.test_request_context(""):
             start.set_app_db()
             # raw_data = {(activity_id, 10*activity_id) for activity_id in PROTOCOL_ACTIVITIES}
-            raw_data = { activity_id: DataStore().randomRawSamples(activity_id, 500, 3) for activity_id in PROTOCOL_ACTIVITIES[2:5]}
-            handAccXFeature = FeatureBuilder().rawFeature(raw_data, "handAccX")
+            raw_data = { activity_id: DataStore().randomRawSamples(activity_id, 500, 3) for activity_id in responseBuilder.PROTOCOL_ACTIVITIES[2:5]}
+            handAccXFeature = featureBuilder.FeatureBuilder().rawFeature(raw_data, "handAccX")
             self.assertEqual(len(handAccXFeature['Standing']), 1500)
 
     def testBuildAllFeatures(self):
         with start.harApp.test_request_context(""):
             start.set_app_db()
-            raw_data = { activity_id: DataStore().randomRawSamples(activity_id, 500, 3) for activity_id in PROTOCOL_ACTIVITIES[2:5]}
-            all_features = FeatureBuilder().buildAllRawFeatures(raw_data)
+            raw_data = { activity_id: DataStore().randomRawSamples(activity_id, 500, 3) for activity_id in responseBuilder.PROTOCOL_ACTIVITIES[2:5]}
+            all_features = featureBuilder.FeatureBuilder().buildRawFeaturesForKeys(raw_data, ['handAccX', 'heartrate', 'chestGyrX'])
             count = len(all_features)
+
+    def testMaximum(self):
+        with start.harApp.test_request_context(""):
+            start.set_app_db()
+            raw_data = { activity_id: DataStore().randomRawSamples(activity_id, 500, 4) for activity_id in responseBuilder.PROTOCOL_ACTIVITIES[5:7]}
+            maximums = featureBuilder.FeatureBuilder().maximum(raw_data, 'chestAccY')
+            count = len(maximums)
