@@ -11,18 +11,23 @@ Install all the necessary programs and tools (these instructions are for homebre
     pip install flask
 
 Clone the git repository:
+
     git clone https://github.com/alexchow/PAMAP.git
     cd PAMAP
 
 Download the data set:
+
     wget http://archive.ics.uci.edu/ml/machine-learning-databases/00231/PAMAP2_Dataset.zip
     unzip PAMAP2_Dataset.zip
 
 Populate the sqlite database with the dataset
+
     python start.py populatedb
+
 Note: if the python process is getting killed, it's probably linux's Out-of-memory killer. Set up a swap file
 
 Run the server:
+
     python start.py
 
 
