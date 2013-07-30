@@ -35,7 +35,11 @@ class ResponseBuilder:
         """
 
         self.window_interval = query_args.get('windowInterval', 200, type=int)
-        self.activities = query_args.get('activities', PROTOCOL_ACTIVITIES, type=str)
+        self.activities = PROTOCOL_ACTIVITIES
+        activities_query = query_args.get('activities', type=str)
+        if activities_query != None:
+            self.activities = map(int, activities_query.split(','))
+
         data_keys_string = query_args.get('data_keys', type=str)
         if data_keys_string != None:
             self.data_keys = data_keys_string.split(',')
