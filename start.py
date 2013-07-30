@@ -121,7 +121,7 @@ if __name__ == "__main__":
         usage()
         exit()
     if (len(sys.argv) < 2):
-        harApp.run()
+        harApp.run(host='0.0.0.0')
     elif (sys.argv[1] == "populatedb"):
         if len(sys.argv) == 3:
             dbFilename = sys.argv[2]
