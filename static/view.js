@@ -23,6 +23,10 @@
                     // .showDistY(true)
                     .color(d3.scale.category10().range());
 
+                if (plot_type === "scatterChart") {
+                    chart.showDistX(true).showDistY(true)
+                }
+
                 chart.xAxis.tickFormat(d3.format('.02f'))
                 chart.yAxis.tickFormat(d3.format('.02f'))
 
