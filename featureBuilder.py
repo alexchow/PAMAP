@@ -63,9 +63,37 @@ class FeatureBuilder(Singleton):
         return [
             {
                 'key': responseBuilder.ACTIVITY_NAMES[activity_id],
-                'values': self.__flat_x([max([row[data_key] for row in window])] for window in window_list)
+                'values': self.__flat_x([max([row[data_key] for row in window]) for window in window_list])
             }
             for (activity_id, window_list) in raw_data.items()
+        ]
+
+    def twoWayCompare(self, feature_x, feature_y, iconSize=200):
+        """
+        :type feature_x : list of dict
+        :type feature_y : list of dict
+
+        :param feature_x : Output from a Feature Builder functions which produces a one-dimensional flat feature,
+                                    1 point per window
+        :param feature_y : Same as x. Used for the y values
+        """
+
+        feature_x_dict = { elem['key'] : elem['values'] for elem in feature_x }
+        feature_y_dict = { elem['key'] : elem['values'] for elem in feature_y }
+
+        return [
+            {
+                'key' : key,
+                'values' : [
+                    {
+                        'x' : feature_x_dict[key][index]['y'],  # Remember, the X's were zero'd out for the flat chart.
+                        'y' : feature_y_dict[key][index]['y'],
+                        'size' : iconSize
+                    }
+                    for index in range(0, len(feature_x_dict[key]))
+                ]
+            }
+            for key in feature_x_dict.keys()
         ]
 
     def buildRawFeaturesForKeys(self, raw_data, data_keys):
