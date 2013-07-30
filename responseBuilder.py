@@ -2,7 +2,7 @@ import flask
 
 from werkzeug.datastructures import ImmutableMultiDict
 from dataStore import DataStore
-from featureBuilder import FeatureBuilder
+import featureBuilder
 
 __author__ = 'alexander'
 
@@ -34,14 +34,32 @@ class ResponseBuilder:
         @type query_args : werkzeug.datastructures.ImmutableMultiDict
         """
 
-        self.window_interval = query_args.get('windowInterval', 500)
-        self.activities = query_args.get('activities', PROTOCOL_ACTIVITIES)
-        self.sets_per_activity = 1
+        self.window_interval = query_args.get('windowInterval', 200, type=int)
+        self.activities = query_args.get('activities', PROTOCOL_ACTIVITIES, type=str)
+        data_keys_string = query_args.get('data_keys', type=str)
+        if data_keys_string != None:
+            self.data_keys = data_keys_string.split(',')
+        else :
+            self.data_keys = ['handAccX', 'handAccY', 'chestAccX', 'chestAccY', 'ankleGyrX', 'heartrate']
+
+        self.numWindows = query_args.get('numWindows', 3, type=int)
 
     def build(self):
         """
         :rtype : dict of (int, dict of (int, [ ]))
         :return: A dict of activity ID to dict of session ID to list of samples
         """
-        random_raw_data_all_activities = { activity_id: DataStore().randomRawSamples(activity_id, 500, self.sets_per_activity) for activity_id in self.activities}
-        return FeatureBuilder().buildAllRawFeatures(random_raw_data_all_activities)
+
+        random_raw_data_all_activities = { activity_id: DataStore().randomRawSamples(activity_id, self.window_interval, self.numWindows) for activity_id in self.activities}
+        rawFeatures = featureBuilder.FeatureBuilder().buildRawFeaturesForKeys(random_raw_data_all_activities, self.data_keys)
+        maximumFeatures = [
+            {
+                'feature_name': 'Max ' + data_key,
+                'data' : featureBuilder.FeatureBuilder().maximum(random_raw_data_all_activities, data_key),
+                'plot_type' : 'scatterChart'
+            }
+            for data_key in self.data_keys
+        ]
+
+        # Take union of all the dicts
+        return rawFeatures + maximumFeatures

@@ -3,21 +3,22 @@
     r = {
         /** Initializes the view of the entire page */
         initialize: function () {
-            console.log("current pathname: " + window.location.pathname)
-            var url = window.location.pathname;
+            var url = window.location.href;
+            console.log("current URL: " + url)
             url = url.replace("view", "data");
             console.log("Getting data from: " + url);
             $.getJSON(url, function (response) {
                 console.log(response);
-                $.each(response, function (feature_name, data) {
-                    r.renderFeature(feature_name, data);
+                $.each(response, function (index, feature) {
+                    r.renderFeature(feature['feature_name'], feature['data'], feature['plot_type']);
                 });
             });
         },
 
-        renderFeature: function (feature_name, data) {
+        renderFeature: function (feature_name, data, plot_type) {
+            plot_type = plot_type || "lineChart";
             nv.addGraph(function () {
-                var chart = nv.models.lineChart()
+                var chart = nv.models[plot_type]()
                     // .showDistX(true)
                     // .showDistY(true)
                     .color(d3.scale.category10().range());
@@ -39,29 +40,6 @@
 
                 return chart;
             });
-        },
-
-        getMockResult: function () {
-            return [
-                {
-                    'key': 'Running',
-                    'values': [
-                        {'x': 0, 'y': 3},
-                        {'x': 1, 'y': 2.5},
-                        {'x': 2, 'y': 3.4},
-                        {'x': 3, 'y': 7.1}
-                    ]
-                },
-                {
-                    'key': 'Walking',
-                    'values': [
-                        {'x': 0, 'y': 4.1},
-                        {'x': 1, 'y': 3.5},
-                        {'x': 2, 'y': 6.8},
-                        {'x': 3, 'y': 8.2}
-                    ]
-                }
-            ]
         }
     };
     window.viewRenderer = r;
