@@ -32,12 +32,11 @@ class DataStore(Singleton):
         :type samples_per_set : int
         :type num_sets : int
 
-        :rtype : dict of (int, [ ])
-        :return: dict of session id to samples. The samples are a randomly chosen contiguous set of samples
-                 corresponding to the specified activity id and has num_samples number of elements
+        :rtype : [ [] ]
+        :return: A list of list of samples.
         """
 
-        result = {}
+        result = [ ]
 
         while len(result) < num_sets:
             sessions = self.__query_db("SELECT id, user from SESSIONS where activity = ?", (activity_id,))
@@ -52,6 +51,7 @@ class DataStore(Singleton):
             print "Using random session id: " + str(session_id)
 
             samples = self.__query_db("SELECT * from raw_samples where session_id = ? order by timestamp", (session_id,))
+
             """ :type samples : list of dict of (unknown, unknown) """
 
             if samples is None: continue
@@ -60,7 +60,7 @@ class DataStore(Singleton):
             starting_point = random.randint(0, len(samples) - samples_per_set)
             """ :type : int"""
 
-            result[session_id] = self.__listOfDictToDictOfList(samples[starting_point:starting_point + samples_per_set])
+            result.append(samples[starting_point:starting_point + samples_per_set])
 
         return result
 
