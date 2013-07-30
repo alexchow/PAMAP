@@ -61,5 +61,14 @@ class ResponseBuilder:
             for data_key in self.data_keys
         ]
 
+        twoWayHandAccXvsChestAccX = [{
+            'feature_name' : 'Max HandAccX vs. Max ChestAccX',
+            'data' : featureBuilder.FeatureBuilder().twoWayCompare(
+                featureBuilder.FeatureBuilder().maximum(random_raw_data_all_activities, 'chestAccX'),
+                featureBuilder.FeatureBuilder().maximum(random_raw_data_all_activities, 'handAccX')
+            ),
+            'plot_type' : 'scatterChart'
+        },]
+
         # Take union of all the dicts
-        return rawFeatures + maximumFeatures
+        return rawFeatures + maximumFeatures + twoWayHandAccXvsChestAccX

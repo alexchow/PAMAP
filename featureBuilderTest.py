@@ -33,3 +33,12 @@ class FeatureBuilderTest(unittest.TestCase):
             raw_data = { activity_id: DataStore().randomRawSamples(activity_id, 500, 4) for activity_id in responseBuilder.PROTOCOL_ACTIVITIES[5:7]}
             maximums = featureBuilder.FeatureBuilder().maximum(raw_data, 'chestAccY')
             count = len(maximums)
+
+    def testTwoWay(self):
+        with start.harApp.test_request_context(""):
+            start.set_app_db()
+            raw_data = { activity_id: DataStore().randomRawSamples(activity_id, 500, 4) for activity_id in responseBuilder.PROTOCOL_ACTIVITIES[5:7]}
+            maxChestAccX = featureBuilder.FeatureBuilder().maximum(raw_data, 'chestAccX')
+            maxHandAccX = featureBuilder.FeatureBuilder().maximum(raw_data, 'handAccX')
+            twoWay = featureBuilder.FeatureBuilder().twoWayCompare(maxHandAccX, maxChestAccX)
+            count = len(twoWay)
