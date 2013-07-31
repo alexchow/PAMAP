@@ -35,12 +35,16 @@ class ResponseBuilder:
         """
 
         self.window_interval = query_args.get('windowInterval', 200, type=int)
-        self.activities = query_args.get('activities', PROTOCOL_ACTIVITIES, type=str)
+        self.activities = PROTOCOL_ACTIVITIES
+        activities_query = query_args.get('activities', type=str)
+        if activities_query != None:
+            self.activities = map(int, activities_query.split(','))
+
         data_keys_string = query_args.get('data_keys', type=str)
         if data_keys_string != None:
             self.data_keys = data_keys_string.split(',')
         else :
-            self.data_keys = ['handAccX', 'handAccY', 'chestAccX', 'chestAccY', 'ankleGyrX', 'heartrate']
+            self.data_keys = ['handAccX', 'handAccY', 'chestAccX', 'chestAccY', 'ankleGyrX']
 
         self.numWindows = query_args.get('numWindows', 3, type=int)
 
@@ -61,14 +65,24 @@ class ResponseBuilder:
             for data_key in self.data_keys
         ]
 
-        twoWayHandAccXvsChestAccX = [{
-            'feature_name' : 'Max HandAccX vs. Max ChestAccX',
+        allMaxes = [
+            {
+            'feature_name' : 'Max ' + data_key_y +' vs. Max ' + data_key_x,
             'data' : featureBuilder.FeatureBuilder().twoWayCompare(
-                featureBuilder.FeatureBuilder().maximum(random_raw_data_all_activities, 'chestAccX'),
-                featureBuilder.FeatureBuilder().maximum(random_raw_data_all_activities, 'handAccX')
+                featureBuilder.FeatureBuilder().maximum(random_raw_data_all_activities, data_key_x),
+                featureBuilder.FeatureBuilder().maximum(random_raw_data_all_activities, data_key_y)
             ),
             'plot_type' : 'scatterChart'
-        },]
+            }
+            for data_key_x in self.data_keys for data_key_y in self.data_keys
+        ]
 
-        # Take union of all the dicts
-        return rawFeatures + maximumFeatures + twoWayHandAccXvsChestAccX
+        allDfts = [
+            {
+                'feature_name' : featureBuilder.RAW_FEATURE_NAMES[data_key] + ' DFT',
+                'data' : featureBuilder.FeatureBuilder().dft(random_raw_data_all_activities, data_key)
+            }
+            for data_key in self.data_keys
+        ]
+
+        return rawFeatures + maximumFeatures + allMaxes + allDfts

@@ -1,3 +1,4 @@
+import numpy
 import responseBuilder
 from singleton import Singleton
 
@@ -115,6 +116,38 @@ class FeatureBuilder(Singleton):
             }
             for feature in data_keys
         ]
+
+    def dft(self, raw_data, data_key):
+        """
+        Perform a DFT over the given data_key for each activity
+        """
+
+        dft_result = [
+            {
+                'key': responseBuilder.ACTIVITY_NAMES[activity_id],
+                'values': self.__auto_x(self.__flatten_list_of_list([abs(numpy.fft.rfft([row[data_key]  for row in window])).tolist() for window in window_list]))
+            }
+            for (activity_id, window_list) in raw_data.items()
+        ]
+
+        # HACKHACKHACK. This cannot be done with list comprehensions and lambdas. DO NOT KNOW WHY. I HATE YOU PYTHON
+        cleaned = [ ]
+        for dft in dft_result:
+            cleaned_dft = { }
+            cleaned_dft['key'] = dft['key']
+            cleaned_dft['values'] = [ ]
+            for point in dft['values']:
+                newPoint = { }
+                for (key, val) in point.items():
+                    newPoint[key] = val
+                if numpy.isnan(point['y']):
+                    newPoint['y'] = 0
+                cleaned_dft['values'].append(newPoint)
+            cleaned.append(cleaned_dft)
+
+        print cleaned
+
+        return cleaned
 
     def __flatten_list_of_list(self, list_of_list):
         return [elem for sublist in list_of_list for elem in sublist]
