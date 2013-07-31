@@ -18,7 +18,8 @@ class FeatureBuilderTest(unittest.TestCase):
             # raw_data = {(activity_id, 10*activity_id) for activity_id in PROTOCOL_ACTIVITIES}
             raw_data = { activity_id: DataStore().randomRawSamples(activity_id, 500, 3) for activity_id in responseBuilder.PROTOCOL_ACTIVITIES[2:5]}
             handAccXFeature = featureBuilder.FeatureBuilder().rawFeature(raw_data, "handAccX")
-            self.assertEqual(len(handAccXFeature['Standing']), 1500)
+            for activity in handAccXFeature:
+                self.assertEqual(len(activity['values']), 1500)
 
     def testBuildAllFeatures(self):
         with start.harApp.test_request_context(""):
@@ -42,3 +43,17 @@ class FeatureBuilderTest(unittest.TestCase):
             maxHandAccX = featureBuilder.FeatureBuilder().maximum(raw_data, 'handAccX')
             twoWay = featureBuilder.FeatureBuilder().twoWayCompare(maxHandAccX, maxChestAccX)
             count = len(twoWay)
+
+    def testDft(self):
+        with start.harApp.test_request_context(""):
+            start.set_app_db()
+            raw_data = {activity_id: DataStore().randomRawSamples(activity_id, 500, 4) for activity_id in
+                        responseBuilder.PROTOCOL_ACTIVITIES[5:7]}
+            dftResult = [
+                {
+                    'feature_name': 'dft',
+                    'data': featureBuilder.FeatureBuilder().dft(raw_data, 'chestAccX')
+                }
+                , ]
+
+            print dftResult
