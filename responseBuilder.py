@@ -79,7 +79,7 @@ class ResponseBuilder:
 
         allDfts = [
             {
-                'feature_name' : featureBuilder.RAW_FEATURE_NAMES[data_key] + 'DFT',
+                'feature_name' : featureBuilder.RAW_FEATURE_NAMES[data_key] + ' DFT',
                 'data' : featureBuilder.FeatureBuilder().dft(random_raw_data_all_activities, data_key)
             }
             for data_key in self.data_keys
